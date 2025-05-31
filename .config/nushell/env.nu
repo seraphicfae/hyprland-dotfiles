@@ -1,0 +1,1 @@
+# Nushell env config file

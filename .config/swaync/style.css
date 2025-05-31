@@ -1,0 +1,123 @@
+/* Global */
+@define-color dark-bg         #1b1b1b;
+@define-color light-bg        #2b2b2b;
+@define-color highlight       #ffd1dc;
+@define-color text-color      #fff;
+@define-color text-color-dark #000;
+@define-color transparency    rgba(27, 27, 27, 0.6);
+
+* {
+    font-family: "JetBrains Mono Nerd Font", monospace;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Notifications */
+.notification-row {
+    outline: none;
+    padding: 0;
+}
+
+.notification {
+    background: @transparency;
+    margin: 0px;
+}
+
+.notification-content {
+    background: @transparency;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid @highlight;
+    margin: 0;
+}
+
+.notification-action {
+    border: 2px solid @highlight;
+    border-top: none;
+    border-radius: 0px;
+    background: #32302F;
+}
+
+.close-button {
+    background: @highlight;
+    color: @dark-bg;
+    text-shadow: none;
+    padding: 0;
+    border-radius: 0px;
+}
+
+.close-button:hover {
+    box-shadow: none;
+    background: @highlight;
+    transition: all .15s ease-in-out;
+    border: none;
+}
+
+/* Control Center */
+.control-center {
+    background: @transparency;
+    border: 2px solid @highlight;
+    border-radius: 12px;
+}
+
+.control-center-list {
+    background: transparent;
+}
+
+.control-center-list-placeholder {
+    opacity: .5;
+}
+
+/* Widgets */
+.widget-title {
+    background: @transparency;
+    padding: 5px 10px;
+    margin: 10px 10px 5px 10px;
+    font-size: 1.5rem;
+    border-radius: 5px;
+}
+
+.widget-title>button {
+    font-size: 1rem;
+    text-shadow: none;
+    background: @transparency;
+    box-shadow: none;
+    border-radius: 5px;
+}
+
+.widget-title>button:hover {
+    background: @highlight;
+    color: black;
+}
+
+.widget-dnd {
+    background: @transparency;
+    padding: 5px 10px;
+    margin: 5px 10px 10px 10px;
+    border-radius: 5px;
+    font-size: large;
+}
+
+.widget-dnd>switch {
+    border-radius: 4px;
+    background: @light-bg;
+}
+
+.widget-dnd>switch:checked {
+    background: @highlight;
+    border: 1px solid @highlight;
+}
+
+.widget-dnd>switch slider,
+.widget-dnd>switch:checked slider {
+    background: @dark-bg;
+    border-radius: 5px;
+}
+
+.widget-label {
+    margin: 10px 10px 5px 10px;
+}
+
+.widget-label>label {
+    font-size: 1rem;
+}
