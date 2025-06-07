@@ -1,0 +1,180 @@
+{
+    "modules-left": [
+        "hyprland/workspaces",
+        "custom/separator",
+        "cpu",
+        "memory",
+        "temperature"
+    ],
+    "modules-center": [
+        "custom/cava",
+        "mpris"
+    ],
+    "modules-right": [
+        "tray",
+        "backlight",
+        "battery",
+        "pulseaudio#output",
+        "custom/separator",
+        "pulseaudio#input",
+        "custom/notifications",
+        "clock"
+    ],
+    "hyprland/workspaces": {
+        "active-only": false,
+        "disable-scroll": true,
+        "on-scroll-up": "hyprctl dispatch workspace -1",
+        "on-scroll-down": "hyprctl dispatch workspace +1",
+        "on-click": "activate",
+        "persistent-workspaces": {
+            "1": "1",
+            "2": "2",
+            "3": "3",
+            "4": "4",
+            "5": "5",
+            "6": "6",
+            "7": "7",
+            "8": "8",
+            "9": "9",
+            "10": "10"
+        }
+    },
+    "cpu": {
+        "format": " {usage}%",
+        "interval": 1,
+        "tooltip": false,
+        "on-click": "missioncenter"
+    },
+    "memory": {
+        "format": " {used}/{total} GiB",
+        "interval": 1,
+        "tooltip": false,
+        "on-click": "missioncenter"
+    },
+    "temperature": {
+        "thermal-zone": 2,
+        "interval": 1,
+        "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
+        "critical-threshold": 80,
+        "format": "{icon} {temperatureC}°C",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        "tooltip": false,
+        "on-click": "missioncenter"
+    },
+    "custom/cava": {
+        "exec": "sh ~/.config/scripts/cava.sh",
+        "on-click": "kitty -e cava",
+        "format": "{}",
+        "tooltip": false,
+        "layer": "below",
+        "output": "all"
+    },
+    "mpris": {
+        "format": "{status_icon} {dynamic}",
+        "format-empty": "test",
+        "tooltip": false,
+        "interval": 1,
+        "max-length": 40,
+        "status-icons": {
+            "paused": "",
+            "playing": "",
+            "stopped": "",
+            "default": ""
+        },
+        "dynamic-order": [
+            "title",
+            "artist"
+        ]
+    },
+    "tray": {
+        "icon-size": 20,
+        "spacing": 7
+    },
+    "backlight": {
+        "format": "{icon} {percent}%",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ]
+    },
+    "battery": {
+        "states": {
+            "good": 95,
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon}  {capacity}%",
+        "format-charging": "{capacity}% ",
+        "format-plugged": "{capacity}% ",
+        "format-alt": "{icon} {time}",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            ""
+        ]
+    },
+    "pulseaudio#output": {
+        "format": "{icon} {volume}%",
+        "on-click-right": "pavucontrol",
+        "format-bluetooth": "{icon} {volume}% ",
+        "format-bluetooth-muted": "󰂲 {icon}",
+        "format-muted": "󰝟 muted",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default": [
+                "",
+                "",
+                ""
+            ]
+        },
+        "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+        "tooltip": true,
+        "scroll-step": 5
+    },
+    "pulseaudio#input": {
+        "format": "{format_source}",
+        "format-source": " {volume}%",
+        "format-source-muted": " muted",
+        "on-scroll-up": "sh -c 'vol=$(pactl get-source-volume @DEFAULT_SOURCE@ | grep -oP \"\\d+(?=%)\" | head -1); if [ \"$vol\" -lt 100 ]; then pactl set-source-volume @DEFAULT_SOURCE@ +5%; fi'",
+        "on-scroll-down": "pactl set-source-volume @DEFAULT_SOURCE@ -5%",
+        "max-volume": "100",
+        "on-click": "pactl set-source-mute @DEFAULT_SOURCE@ toggle",
+        "on-click-right": "pavucontrol"
+    },
+    "custom/notifications": {
+        "format": "",
+        "tooltip": false,
+        "click-left": "swaync-client -t",
+        "on-click": "swaync-client -t"
+    },
+    "clock": {
+        "interval": 1,
+        "format": " {:%H:%M:%S}",
+        "tooltip": false,
+        "format-alt": "  {:%A, %B %d}"
+    },
+    "custom/separator": {
+        "format": " • ",
+        "tooltip": false
+    }
+}
