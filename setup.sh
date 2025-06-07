@@ -314,6 +314,7 @@ while true; do
             else
                 info "Setting Zsh as the default shell for $(whoami)..."
                 chsh -s /usr/bin/zsh "$(whoami)"
+                ln -s ~/.config/zsh/.zshrc ~/.zshrc
                 okay "Default shell changed to Zsh."
             fi
         else
