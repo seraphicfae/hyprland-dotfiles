@@ -54,7 +54,7 @@ sudo systemctl enable --now NetworkManager bluetooth
 sudo systemctl enable sddm
 echo -e "[Theme]\nCurrent=catppuccin-mocha" | sudo tee /etc/sddm.conf
 chsh -s /usr/bin/zsh
-ln -s ~/.config/zsh/.zshrc ~/.zshrc
+export ZDOTDIR="$HOME/.config/zsh" > $HOME/.zshenv
 reboot
 ```
 
