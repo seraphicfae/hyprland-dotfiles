@@ -87,7 +87,7 @@ else
 fi
 
 # ─────────── Package Installation ───────────
-sleep 2
+sleep 5
 clear
 echo -e "${GREEN}${BOLD}"
 cat << "EOF"
@@ -158,7 +158,7 @@ else
     done
 fi
 # ─────────── Dotfile(s) Installation ───────────
-sleep 2
+sleep 5
 clear
 echo -e "${GREEN}${BOLD}"
 cat << "EOF"
@@ -229,7 +229,7 @@ if [[ "$copy_dotfiles" =~ ^[Yy]$ ]]; then
     fi
 done
 # ─────────── Services and Setup ───────────
-sleep 2
+sleep 5
 clear
 echo -e "${GREEN}${BOLD}"
 cat << "EOF"
@@ -330,7 +330,7 @@ while true; do
 done
 
 # ─────────── System verification ───────────
-sleep 2
+sleep 5
 clear
 echo -e "${GREEN}${BOLD}"
 cat << "EOF"
