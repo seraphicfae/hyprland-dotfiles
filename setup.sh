@@ -104,7 +104,7 @@ required_packages=(
     hyprland hyprlock hyprpicker xorg-xwayland qt5-wayland qt6-wayland gvfs gvfs-mtp mtpfs xdg-user-dirs networkmanager network-manager-applet 
     bluez bluez-utils blueman pavucontrol vlc ffmpeg amberol gimp eog obs-studio vesktop-bin zen-browser-bin vscodium-bin keepassxc flatpak 
     nautilus-open-any-terminal noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ttf-jetbrains-mono-nerd sddm sddm-theme-catppuccin waybar 
-    swww slurp grim wl-clipboard rofi swaync nwg-look papirus-icon-theme starship nushell mission-center ranger vim cava kitty fastfetch
+    swww slurp grim wl-clipboard rofi swaync nwg-look papirus-icon-theme starship zsh fzf fd bat mission-center ranger vim cava kitty fastfetch
 )
 
 # Filter out packages that are already installed
@@ -307,17 +307,19 @@ while true; do
         bash -c 'echo -e "[Theme]\nCurrent=catppuccin-mocha" | sudo tee /etc/sddm.conf'
         okay "Changed sddm theme."
 
-        # Set Nushell as default shell
-        if command -v nu &>/dev/null; then
-            if [[ "$SHELL" == "/usr/bin/nu" ]]; then
-                info "Nushell is already the default shell for $(whoami)."
+        # Set Zsh as default shell
+        if command -v zsh &>/dev/null; then
+            if [[ "$SHELL" == "/usr/bin/zsh" ]]; then
+                info "Zsh is already the default shell for $(whoami)."
+                ln -s ~/.config/zsh/.zshrc ~/.zshrc
             else
-                info "Setting nushell as the default shell for $(whoami)..."
+                info "Setting Zsh as the default shell for $(whoami)..."
                 chsh -s /usr/bin/nu "$(whoami)"
-                okay "Default shell changed to Nushell."
+                ln -s ~/.config/zsh/.zshrc ~/.zshrc
+                okay "Default shell changed to Zsh."
             fi
         else
-            fail "Nushell is not installed, cannot set it as the default shell."
+            fail "Zsh is not installed, cannot set it as the default shell."
         fi
         break
     elif [[ "$enable_services" =~ ^[Nn]$ ]]; then

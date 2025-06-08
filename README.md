@@ -33,7 +33,7 @@ cd hyprland-dotfiles
 paru -S hyprland hyprlock hyprpicker xorg-xwayland qt5-wayland qt6-wayland gvfs gvfs-mtp mtpfs xdg-user-dirs networkmanager network-manager-applet 
 bluez bluez-utils blueman pavucontrol vlc ffmpeg amberol gimp eog obs-studio vesktop-bin zen-browser-bin vscodium-bin keepassxc flatpak 
 nautilus-open-any-terminal noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ttf-jetbrains-mono-nerd sddm sddm-theme-catppuccin waybar 
-swww slurp grim wl-clipboard rofi swaync nwg-look papirus-icon-theme starship nushell mission-center ranger vim cava kitty fastfetch && rm -rf ~/paru
+swww slurp grim wl-clipboard rofi swaync nwg-look papirus-icon-theme starship zsh fzf fd bat mission-center ranger vim cava kitty fastfetch && rm -rf ~/paru
 ```
 ###### Psst, edit your /etc/pacman.conf for multilib so you can get steam
 
@@ -53,7 +53,8 @@ cp -r .zen/* ~/.zen/
 sudo systemctl enable --now NetworkManager bluetooth
 sudo systemctl enable sddm
 echo -e "[Theme]\nCurrent=catppuccin-mocha" | sudo tee /etc/sddm.conf
-chsh -s /usr/bin/nu
+chsh -s /usr/bin/zsh
+ln -s ~/.config/zsh/.zshrc ~/.zshrc
 reboot
 ```
 
