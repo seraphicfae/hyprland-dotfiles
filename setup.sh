@@ -104,7 +104,7 @@ required_packages=(
     hyprland hyprlock hyprpicker xorg-xwayland qt5-wayland qt6-wayland gvfs gvfs-mtp mtpfs xdg-user-dirs networkmanager network-manager-applet 
     bluez bluez-utils blueman pavucontrol vlc ffmpeg amberol gimp eog obs-studio vesktop-bin zen-browser-bin vscodium-bin keepassxc flatpak 
     nautilus-open-any-terminal noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ttf-jetbrains-mono-nerd sddm sddm-theme-catppuccin waybar 
-    swww slurp grim wl-clipboard rofi swaync nwg-look papirus-icon-theme starship zsh fzf fd bat mission-center ranger vim cava kitty fastfetch
+    swww slurp grim wl-clipboard rofi swaync nwg-look papirus-icon-theme starship zsh mission-center ranger neovim cava kitty fastfetch
 )
 
 # Filter out packages that are already installed
@@ -301,7 +301,7 @@ while true; do
         else
             warn "SDDM is not installed or its unit file is missing."
         fi
-      
+
         # Change the SDDM theme to /etc/sddm.conf (Warning: this will overwrite the file)
         info "Changing sddm theme..."
         bash -c 'echo -e "[Theme]\nCurrent=catppuccin-mocha" | sudo tee /etc/sddm.conf'
@@ -311,16 +311,25 @@ while true; do
         if command -v zsh &>/dev/null; then
             if [[ "$SHELL" == "/usr/bin/zsh" ]]; then
                 info "Zsh is already the default shell for $(whoami)."
-                ln -s ~/.config/zsh/.zshrc ~/.zshrc
             else
                 info "Setting Zsh as the default shell for $(whoami)..."
                 chsh -s /usr/bin/zsh "$(whoami)"
-                ln -s ~/.config/zsh/.zshrc ~/.zshrc
                 okay "Default shell changed to Zsh."
             fi
+
+            # I hate zsh
+            echo 'export ZDOTDIR="$HOME/.config/zsh"' > "$HOME/.zshenv"
+
+            # Setup Antidote plugin manager
+            mkdir -p "$HOME/.config/zsh"
+            if [[ ! -d "$HOME/.config/zsh/antidote" ]]; then
+                info "Downloading plugin manager..."
+                git clone --depth=1 https://github.com/mattmc3/antidote.git "$HOME/.config/zsh/antidote"
+            fi
         else
-            fail "Zsh is not installed, cannot set it as the default shell."
+            warn "Zsh is not installed. Skipping shell setup."
         fi
+
         break
     elif [[ "$enable_services" =~ ^[Nn]$ ]]; then
         warn "Skipped enabling and starting services."
