@@ -25,11 +25,6 @@ note()  { echo -e "${BOLD}${WHITE}[ NOTE ]${RESET} $1"; }
 # Get the directory
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Verify functions
-SKIPPED_PACKAGE_INSTALL=0
-SKIPPED_DOTFILES_COPY=0
-SKIPPED_SERVICE_SETUP=0
-
 # ─────────── Arch Linux check ───────────
 if [ -f /etc/arch-release ]; then
     debug "This is an Arch-based distribution."
@@ -59,35 +54,35 @@ cat << "EOF"
 ╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝     ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝                                                                                                                                                                                                                                   
 EOF
 
-# ─────────── Paru Installation ───────────
-# Pretty self explanatory
-if ! command -v paru &> /dev/null; then
-    while true; do
-        read -n 1 -r -p "$(ask "Would you like to install paru? [Y/n] ")" install_paru
-        echo
-        install_paru="${install_paru:-y}"
+echo -e "${RESET}"
+note "This script will set up your Hyprland environment with dotfiles and packages."
+echo
 
-        if [[ "$install_paru" =~ ^[Yy]$ ]]; then
-            git clone https://aur.archlinux.org/paru.git
-            cd paru && makepkg -si && cd ..
-            rm -rf paru
-            if ! command -v paru &> /dev/null; then
-            warn "Something went wrong with installing paru."
-            fi
-            break
-        elif [[ "$install_paru" =~ ^[Nn]$ ]]; then
-            fail "Paru is required. Exiting..."
-            exit 1
+# ─────────── Paru Installation ───────────
+if ! command -v paru &> /dev/null; then
+    read -p "$(ask "Paru (AUR helper) is needed. Install it? [Y/n] ")" install_paru
+    install_paru="${install_paru:-y}"
+
+    if [[ "$install_paru" =~ ^[Yy]$ ]]; then
+        git clone https://aur.archlinux.org/paru.git
+        cd paru && makepkg -si && cd ..
+        rm -rf paru
+        if command -v paru &> /dev/null; then
+            okay "Paru installed successfully"
         else
-            warn "Please enter Y or N."
+            fail "Something went wrong with installing paru."
+            exit 1
         fi
-    done
+    else
+        fail "Paru is required. Exiting..."
+        exit 1
+    fi
 else
     okay "Paru is already installed."
 fi
 
 # ─────────── Package Installation ───────────
-sleep 5
+sleep 2
 clear
 echo -e "${GREEN}${BOLD}"
 cat << "EOF"
@@ -99,6 +94,8 @@ cat << "EOF"
 ╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝                                                                                                                                                                                                                                                                                                                          
 EOF
 
+echo -e "${RESET}"
+
 # Packages needed for dotfiles (and some that I use :3)
 required_packages=(
     hyprland hyprlock hyprpicker xorg-xwayland qt5-wayland qt6-wayland gvfs gvfs-mtp mtpfs xdg-user-dirs networkmanager network-manager-applet bluez bluez-utils 
@@ -108,57 +105,37 @@ required_packages=(
 )
 
 # Filter out packages that are already installed
-required_packages=(
-    $(for pkg in "${required_packages[@]}"; do
-        if ! pacman -Qq "$pkg" &>/dev/null; then
-            echo "$pkg"
-        fi
-    done)
-)
+missing_packages=()
+for pkg in "${required_packages[@]}"; do
+    if ! pacman -Qq "$pkg" &>/dev/null; then
+        missing_packages+=("$pkg")
+    fi
+done
 
-if (( ${#required_packages[@]} > 0 )); then
-    warn "The following packages are missing:"
-    printf "%s\n" "${required_packages[@]}" | paste -sd " " - | fold -s -w 80
+if (( ${#missing_packages[@]} > 0 )); then
+    info "Found ${#missing_packages[@]} missing packages"
+    read -p "$(ask "Install missing packages? [Y/n] ")" install_missing
+    install_missing="${install_missing:-y}"
 
-
-    while true; do
-        read -n 1 -r -p "$(ask "Would you like to install them? [Y/n] ")" install_missing
-        echo
-        install_missing="${install_missing:-y}"
-
-        if [[ "$install_missing" =~ ^[Yy]$ ]]; then
-            paru -S --noconfirm "${required_packages[@]}"
-            okay "Missing packages installed."
-            break
-        elif [[ "$install_missing" =~ ^[Nn]$ ]]; then
-            SKIPPED_PACKAGE_INSTALL=1
-            warn "Skipped installing missing packages."
-            break
-        else
-            warn "Please enter Y or N."
-        fi
-    done
+    if [[ "$install_missing" =~ ^[Yy]$ ]]; then
+        paru -S --noconfirm "${missing_packages[@]}"
+        okay "Missing packages installed."
+    else
+        warn "Skipped installing missing packages."
+    fi
 else
     okay "All required packages are already installed."
-    while true; do
-        read -n 1 -r -p "$(ask "Would you like to update them anyway? [Y/n] ")" update_all
-        echo
-        update_all="${update_all:-y}"
+    read -p "$(ask "Update all packages? [Y/n] ")" update_all
+    update_all="${update_all:-y}"
 
-        if [[ "$update_all" =~ ^[Yy]$ ]]; then
-            paru -Syu --noconfirm
-            okay "Packages updated."
-            break
-        elif [[ "$update_all" =~ ^[Nn]$ ]]; then
-            info "Skipping package update."
-            break
-        else
-            warn "Please enter Y or N."
-        fi
-    done
+    if [[ "$update_all" =~ ^[Yy]$ ]]; then
+        paru -Syu --noconfirm
+        okay "Packages updated."
+    fi
 fi
+
 # ─────────── Dotfile(s) Installation ───────────
-sleep 5
+sleep 2
 clear
 echo -e "${GREEN}${BOLD}"
 cat << "EOF"
@@ -170,66 +147,45 @@ cat << "EOF"
 ╚═════╝  ╚═════╝    ╚═╝   ╚═╝     ╚═╝╚══════╝╚══════╝    ╚═╝╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝                                                                                                                                                                                                                                                                                                                                                                                                                                    
 EOF
 
+echo -e "${RESET}"
+
 declare -a dotfile_paths=(".config" ".zen" ".icons" ".themes" ".vscode-oss")
 
-# Prompt if the user wants to backup their dotfiles.
-while true; do
-    read -n 1 -r -p "$(ask "Would you like to back up your existing dotfiles? [Y/n] ")" backup_dotfiles
-    echo
-    backup_dotfiles="${backup_dotfiles:-y}"
+# Backup existing dotfiles
+read -p "$(ask "Back up existing dotfiles? [Y/n] ")" backup_dotfiles
+backup_dotfiles="${backup_dotfiles:-y}"
 
-    if [[ "$backup_dotfiles" =~ ^[Yy]$ ]]; then
-        for folder in "${dotfile_paths[@]}"; do
-            target="$HOME/$folder"
-            backup="$HOME/${folder}.bak"
+if [[ "$backup_dotfiles" =~ ^[Yy]$ ]]; then
+    for folder in "${dotfile_paths[@]}"; do
+        if [ -e "$HOME/$folder" ]; then
+            info "Backing up $HOME/$folder"
+            mv "$HOME/$folder" "$HOME/${folder}.bak"
+            okay "Backed up $folder"
+        fi
+    done
+fi
 
-            if [ -e "$target" ]; then
-                info "Backing up $target to $backup"
-                mv "$target" "$backup"
-                okay "Backup of $folder complete."
-            else
-                warn "$target does not exist, skipping backup."
-            fi
-        done
-        break
-    elif [[ "$backup_dotfiles" =~ ^[Nn]$ ]]; then
-        warn "Skipping backup of dotfiles."
-        break
-    else
-        warn "Please enter Y or N."
-    fi
-done
-
-# Prompt the user to copy over the dotfiles (will overwrite!!)
-while true; do
-    read -n 1 -r -p "$(ask "Would you like to copy dotfiles from $DOTFILES_DIR into your home directory? [Y/n] ")" copy_dotfiles
-    echo
-    copy_dotfiles="${copy_dotfiles:-y}"
+# Copy dotfiles
+read -p "$(ask "Copy dotfiles to your home directory? [Y/n] ")" copy_dotfiles
+copy_dotfiles="${copy_dotfiles:-y}"
 
 if [[ "$copy_dotfiles" =~ ^[Yy]$ ]]; then
     for folder in "${dotfile_paths[@]}"; do
-        source="$DOTFILES_DIR/$folder"
-        destination="$HOME/$folder"
-        if [ -d "$source" ]; then
-            mkdir -p "$destination"
-            info "Copying contents of $source into $destination"
-            cp -rf "$source/"* "$destination/"
-            okay "Copied $folder to $destination"
+        if [ -d "$DOTFILES_DIR/$folder" ]; then
+            mkdir -p "$HOME/$folder"
+            info "Copying $folder"
+            cp -rf "$DOTFILES_DIR/$folder/"* "$HOME/$folder/"
+            okay "Copied $folder"
         else
-            warn "Source folder $source does not exist, skipping."
+            warn "$DOTFILES_DIR/$folder not found, skipping"
         fi
     done
-    break
-    elif [[ "$copy_dotfiles" =~ ^[Nn]$ ]]; then
-        SKIPPED_DOTFILES_COPY=1
-        warn "Skipping dotfile copy. Nothing was copied."
-        break
-    else
-        warn "Please enter Y or N."
-    fi
-done
+else
+    warn "Skipped dotfile installation"
+fi
+
 # ─────────── Services and Setup ───────────
-sleep 5
+sleep 2
 clear
 echo -e "${GREEN}${BOLD}"
 cat << "EOF"
@@ -241,107 +197,52 @@ cat << "EOF"
 ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚═╝ ╚═════╝╚══════╝╚══════╝                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
 EOF
 
-while true; do
-    read -n 1 -r -p "$(ask "Would you like to enable/start essential services? [Y/n] ")" enable_services
-    echo
-    enable_services=${enable_services:-y}
+echo -e "${RESET}"
 
-    if [[ "$enable_services" =~ ^[Yy]$ ]]; then
-        # Start and enable NetworkManager
-        if systemctl list-unit-files | grep -q '^NetworkManager\.service'; then
-            if systemctl is-enabled --quiet NetworkManager; then
-                info "NetworkManager is already enabled."
-            else
-                info "Enabling NetworkManager..."
-                sudo systemctl enable NetworkManager
-                okay "NetworkManager enabled."
-            fi
+read -p "$(ask "Set up system services? [Y/n] ")" enable_services
+enable_services=${enable_services:-y}
 
-            if systemctl is-active --quiet NetworkManager; then
-                info "NetworkManager is already running."
-            else
-                info "Starting NetworkManager..."
-                sudo systemctl start NetworkManager
-                okay "NetworkManager started."
-            fi
-        else
-            warn "NetworkManager is not installed or its unit file is missing."
+if [[ "$enable_services" =~ ^[Yy]$ ]]; then
+    # NetworkManager
+    info "Setting up NetworkManager..."
+    sudo systemctl enable --now NetworkManager
+    okay "NetworkManager configured"
+
+    # Bluetooth
+    info "Setting up Bluetooth..."
+    sudo systemctl enable --now bluetooth
+    okay "Bluetooth configured"
+
+    # SDDM
+    info "Setting up SDDM display manager..."
+    sudo systemctl enable sddm
+    echo -e "[Theme]\nCurrent=catppuccin-mocha" | sudo tee /etc/sddm.conf > /dev/null
+    okay "SDDM configured with Catppuccin theme"
+
+    # Zsh setup
+    if command -v zsh &>/dev/null; then
+        if [[ "$SHELL" != "/usr/bin/zsh" ]]; then
+            info "Setting Zsh as default shell..."
+            chsh -s /usr/bin/zsh "$(whoami)"
+            okay "Default shell changed to Zsh"
         fi
 
-        # Start and enable Bluetooth
-        if systemctl list-unit-files | grep -q '^bluetooth\.service'; then
-            if systemctl is-enabled --quiet bluetooth; then
-                info "Bluetooth is already enabled."
-            else
-                info "Enabling Bluetooth..."
-                sudo systemctl enable bluetooth
-                okay "Bluetooth enabled."
-            fi
-
-            if systemctl is-active --quiet bluetooth; then
-                info "Bluetooth is already running."
-            else
-                info "Starting Bluetooth..."
-                sudo systemctl start bluetooth
-                okay "Bluetooth started."
-            fi
-        else
-            warn "Bluetooth is not installed or its unit file is missing."
+        # Zsh configuration
+        echo 'export ZDOTDIR="$HOME/.config/zsh"' > "$HOME/.zshenv"
+        mkdir -p "$HOME/.config/zsh"
+        
+        if [[ ! -d "$HOME/.config/zsh/antidote" ]]; then
+            info "Installing Zsh plugin manager..."
+            git clone --depth=1 https://github.com/mattmc3/antidote.git "$HOME/.config/zsh/antidote"
+            okay "Antidote plugin manager installed"
         fi
-
-        # Start SDDM
-        if systemctl list-unit-files | grep -q '^sddm\.service'; then
-            if systemctl is-enabled --quiet sddm; then
-                info "SDDM is already enabled."
-            else
-                info "Enabling SDDM..."
-                sudo systemctl enable sddm
-                okay "SDDM enabled."
-            fi
-        else
-            warn "SDDM is not installed or its unit file is missing."
-        fi
-
-        # Change the SDDM theme to /etc/sddm.conf (Warning: this will overwrite the file)
-        info "Changing sddm theme..."
-        bash -c 'echo -e "[Theme]\nCurrent=catppuccin-mocha" | sudo tee /etc/sddm.conf'
-        okay "Changed sddm theme."
-
-        # Set Zsh as default shell
-        if command -v zsh &>/dev/null; then
-            if [[ "$SHELL" == "/usr/bin/zsh" ]]; then
-                info "Zsh is already the default shell for $(whoami)."
-            else
-                info "Setting Zsh as the default shell for $(whoami)..."
-                chsh -s /usr/bin/zsh "$(whoami)"
-                okay "Default shell changed to Zsh."
-            fi
-
-            # I hate zsh
-            echo 'export ZDOTDIR="$HOME/.config/zsh"' > "$HOME/.zshenv"
-
-            # Setup Antidote plugin manager
-            mkdir -p "$HOME/.config/zsh"
-            if [[ ! -d "$HOME/.config/zsh/antidote" ]]; then
-                info "Downloading plugin manager..."
-                git clone --depth=1 https://github.com/mattmc3/antidote.git "$HOME/.config/zsh/antidote"
-            fi
-        else
-            warn "Zsh is not installed. Skipping shell setup."
-        fi
-
-        break
-    elif [[ "$enable_services" =~ ^[Nn]$ ]]; then
-        warn "Skipped enabling and starting services."
-        SKIPPED_SERVICE_SETUP=1
-        break
-    else
-        warn "Please enter Y or N."
     fi
-done
+else
+    warn "Skipped service setup"
+fi
 
-# ─────────── System verification ───────────
-sleep 5
+# ─────────── Done! ───────────
+sleep 2
 clear
 echo -e "${GREEN}${BOLD}"
 cat << "EOF"
@@ -353,28 +254,15 @@ cat << "EOF"
 ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚═╝                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 EOF
 
-# Log skipped steps
-echo -e "\n${BOLD}${BLUE}[ .. ]${RESET} Skipped steps:"
-[ "$SKIPPED_PACKAGE_INSTALL" -eq 1 ] && warn "Package installation was skipped."
-[ "$SKIPPED_DOTFILES_COPY" -eq 1 ] && warn "Dotfile copy was skipped."
-[ "$SKIPPED_SERVICE_SETUP" -eq 1 ] && warn "Service setup was skipped."
+echo -e "${RESET}"
+okay "Setup complete!"
 
-# Final reboot prompt
-while true; do
-    read -n 1 -r -p "$(ask "Would you like to reboot now? [Y/n] ")" reboot_choice
-    echo
-    reboot_choice="${reboot_choice:-y}"
+read -p "$(ask "Reboot now to start using your new setup? [Y/n] ")" reboot_choice
+reboot_choice="${reboot_choice:-y}"
 
 if [[ "$reboot_choice" =~ ^[Yy]$ ]]; then
     info "Rebooting system..."
     sudo reboot
-    break
-    elif [[ "$reboot_choice" =~ ^[Nn]$ ]]; then
-        note "Setup complete. Reboot recommended before using your new system."
-        break
-    else
-        warn "Please enter Y or N."
-    fi
-done
-
-# Hey, you! Yeah, you! Good job on reading through this script. You never know what could be lurking! Your prize: The website I used for ascii art: https://patorjk.com/software/taag/#p=display&f=Sweet&t=%3A3
+else
+    note "Setup complete! Reboot when you're ready to use your new Hyprland setup."
+fi
