@@ -24,7 +24,7 @@ setopt hist_reduce_blanks
 setopt inc_append_history
 setopt share_history
 
-# ─── A better way to cd ────────────────────────────────────────────
+# ─── Widgets ────────────────────────────────────────────
 if [[ -o interactive ]]; then
   fzf-cd() {
     local dir
@@ -49,6 +49,10 @@ if [[ -o interactive ]]; then
   bindkey '^F' fzf-cd
 fi
 
-# ─── Starship Prompt ────────────────────────────────────
+# ─── Evals ────────────────────────────────────
 eval "$(starship init zsh)"
-eval "$(zoxide init zsh)"
+eval "$(zoxide init --cmd cd zsh)"
+
+# ─── Aliases ────────────────────────────────────
+alias fastfetch=' clear && fastfetch'
+alias vs='vscodium'

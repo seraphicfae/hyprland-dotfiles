@@ -31,11 +31,11 @@ cd hyprland-dotfiles
 
 ```
 paru -S hyprland hyprlock hyprpicker xorg-xwayland qt5-wayland qt6-wayland gvfs gvfs-mtp mtpfs 
-xdg-user-dirs networkmanager network-manager-applet bluez bluez-utils blueman pavucontrol vlc 
-ffmpeg amberol gimp eog obs-studio vesktop-bin zen-browser-bin vscodium-bin keepassxc flatpak 
+xdg-user-dirs networkmanager network-manager-applet bluez bluez-utils blueman pavucontrol mpv 
+amberol gimp eog obs-studio vesktop-bin zen-browser-bin vscodium-bin keepassxc flatpak 
 nautilus-open-any-terminal noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ttf-jetbrains-mono-nerd 
-sddm sddm-theme-catppuccin waybar swww slurp grim wl-clipboard rofi swaync nwg-look papirus-icon-theme 
-starship zsh zoxide fzf fd bat mission-center ranger cava kitty fastfetch && rm -rf ~/paru
+sddm sddm-theme-catppuccin waybar swww slurp grim wl-clipboard rofi swaync nwg-look qt6ct-kde kvantum papirus-icon-theme 
+starship zsh zoxide fzf fd mission-center ranger cava kitty fastfetch && rm -rf ~/paru
 ```
 ###### Psst, edit your /etc/pacman.conf for multilib so you can get steam
 

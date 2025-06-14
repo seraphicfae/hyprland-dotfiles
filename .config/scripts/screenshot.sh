@@ -1,66 +1,34 @@
 #!/bin/bash
 
-# Configuration
-output_dir="$HOME/Pictures/Screenshots"
-mkdir -p "$output_dir"
-filename="$output_dir/screenshot_$(date +%Y%m%d_%H%M%S).png"
-sound_path="/usr/share/sounds/freedesktop/stereo/camera-shutter.oga"
+mkdir -p "$HOME/Pictures/Screenshots"
+filename="$HOME/Pictures/Screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png"
+lockfile="/tmp/screenshot.lock"
 
-# Required commands
-required_cmds=(grim slurp notify-send mktemp)
-
-# Check dependencies
-for cmd in "${required_cmds[@]}"; do
-    command -v "$cmd" &>/dev/null || {
-        notify-send "❌ Screenshot Error" "Missing command: $cmd"
-        exit 1
-    }
-done
-
-# Check environment
-if [[ -z "$WAYLAND_DISPLAY" ]]; then
-    notify-send "❌ Screenshot Error" "Not in a Wayland session."
+# Prevent multiple screenshots
+if [[ -f "$lockfile" ]]; then
+    notify-send " Screenshot in progress"
     exit 1
 fi
 
-take_screenshot() {
-    local mode="$1"
-    local tmp
-    tmp=$(mktemp) || {
-        notify-send "❌ Screenshot Error" "Failed to create temp file."
-        exit 1
-    }
+touch "$lockfile"
+trap 'rm -f "$lockfile"' EXIT
 
-    case "$mode" in
-        area) grim -g "$(slurp)" "$tmp" ;;
-        full) grim "$tmp" ;;
-        *)
-            notify-send "❌ Screenshot Error" "Invalid mode: $mode"
-            rm -f "$tmp"
-            exit 1
-            ;;
+# Actual logic
+take_screenshot() {
+    case "$1" in
+        area) grim -g "$(slurp)" "$filename" ;;
+        full) grim "$filename" ;;
+        *) exit 1 ;;
     esac
 
-    if [[ -s "$tmp" ]]; then
-        mv "$tmp" "$filename"
+    if [[ -s "$filename" ]]; then
+        wl-copy < "$filename"
+        paplay "/usr/share/sounds/freedesktop/stereo/camera-shutter.oga"
 
-        # Optional sound
-        if command -v paplay &>/dev/null && [[ -f "$sound_path" ]]; then
-            paplay "$sound_path" &>/dev/null
-        fi
-
-        notify-send -i "$filename" "📸 Screenshot taken" "Saved as $filename"
+        notify-send -i "$filename" "󰄀 Screenshot taken" "Saved as $(basename "$filename") and copied to clipboard"
     else
-        rm -f "$tmp"
-        notify-send "❌ Screenshot cancelled"
+        notify-send " Screenshot cancelled"
     fi
 }
 
-# Prevent multiple instances
-(
-    flock -n 9 || {
-        notify-send "⚠️ Screenshot already in progress"
-        exit 1
-    }
-    take_screenshot "$1"
-) 9>/tmp/screenshot.lock
+take_screenshot "$1"
